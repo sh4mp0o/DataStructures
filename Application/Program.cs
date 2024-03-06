@@ -12,9 +12,9 @@ namespace console
 {
     internal class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
-            string text = new StreamReader("prestuplenie-i-nakazanie.txt").ReadToEnd();
+            string text = new StreamReader("worldandwar.txt").ReadToEnd();     //prestuplenie-i-nakazanie.txt      annakarenina.txt        worldandwar
 
             Regex regex = new Regex("[А-Яа-яA-Za-z]+");
             MatchCollection matchCollection = regex.Matches(text);
@@ -23,26 +23,41 @@ namespace console
             {
                 words[i] = matchCollection[i].Value;
             }
-
+            long commonTime = 0;
+            long mineTime = 0;
+            for (int i = 0; i < 50; i++)
+            {
+                mineTime += OneTryMine(words);
+                commonTime += OneTryCommon(words);
+            }
+            Console.WriteLine($"common: {commonTime/50} mine: {mineTime/50}");
+            Console.ReadLine();
+            Main();
+        }
+        public static long OneTryCommon(string[] words)
+        {
             Stopwatch sw = new Stopwatch();
             sw.Start();
             CommonDict(words);
             sw.Stop();
-            Console.WriteLine($"Время: {sw.ElapsedMilliseconds}");
-
-            sw.Restart();
+            long time = sw.ElapsedMilliseconds;
+            return time;
+        }
+        public static long OneTryMine(string[] words)
+        {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
             MineDict(words);
             sw.Stop();
-            Console.WriteLine($"Время: {sw.ElapsedMilliseconds}");
-
-            Console.ReadLine();
+            long time = sw.ElapsedMilliseconds;
+            return time;
         }
         public static void CommonDict(string[] words)
         {
             System.Collections.Generic.Dictionary<string, int> dict = [];
             for (int i = 0; i < words.Length; i++)
             {
-                if (dict.ContainsKey(words[i]))
+                if (dict.ContainsKey(words[i])) 
                 {
                     dict[words[i]]++;
                 }
@@ -54,7 +69,7 @@ namespace console
             {
                 if (item.Value > 27)
                 {
-                    Console.WriteLine($"{item.Key} {item.Value}");
+                    //Console.WriteLine($"{item.Key} {item.Value}");
                     smallDict.Add(item.Key, item.Value);
                 }
             }
@@ -65,6 +80,29 @@ namespace console
         }
         public static void MineDict(string[] words)
         {
+            OpenAddressHashTable<string, int> maDict = new OpenAddressHashTable<string, int>();
+            for (int i = 0; i < words.Length; i++)
+            {
+                if (maDict.ContainsKey(words[i]))
+                {
+                    maDict[words[i]]++;
+                }
+                else maDict.Add(words[i], 1);
+            }
+
+            var smallDict = new OpenAddressHashTable<string, int>();
+            foreach (var item in maDict)
+            {
+                if (item.Value > 27)
+                {
+                    //Console.WriteLine($"{item.Key} {item.Value}");
+                    smallDict.Add(item.Key, item.Value);
+                }
+            }
+            foreach (var item in smallDict)
+            {
+                maDict.Remove(item.Key);
+            }
 
         }
     }

@@ -1,4 +1,5 @@
-﻿namespace HashTableLib
+﻿
+namespace HashTableLib
 {
     internal class GetPrimeNumber
     {
@@ -15,6 +16,8 @@
             17519, 21023, 25229, 30293, 36353, 43627, 52361, 62851, 75431, 90523, 108631, 130363, 156437,
             187751, 225307, 270371, 324449, 389357, 467237, 560689, 672827, 807403, 968897, 1162687, 1395263,
             1674319, 2009191, 2411033, 2893249, 3471899, 4166287, 4999559, 5999471, 7199369};
+        public int Count
+        {get { return _primes.Length; } }
         public int Next()
         {
             if (_current < _primes.Length)
@@ -39,6 +42,11 @@
                     return (primedivs[i], primedivs[i + 1]);
             }
             return (size * 3 + 1, size + 11);
+        }
+
+        public static explicit operator int(GetPrimeNumber v)
+        {
+            return v._current;
         }
     }
 }

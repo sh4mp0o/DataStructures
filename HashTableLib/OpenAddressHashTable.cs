@@ -1,9 +1,10 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 
 namespace HashTableLib
 {
-    public class OpenAddressHashTable<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>, IDictionary<TKey, TValue> where TKey: IEquatable<TKey>
+    public class OpenAddressHashTable<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>, IDictionary<TKey, TValue> where TKey : IEquatable<TKey>
     {
         Pair<TKey, TValue>[] _table;
         private int _capacity;
@@ -14,12 +15,12 @@ namespace HashTableLib
 
         public ICollection<TValue> Values => throw new NotImplementedException();
 
-        public bool IsReadOnly {  get; private set; }
+        public bool IsReadOnly { get; private set; }
 
         private const double FillFactor = 0.85;
         private readonly GetPrimeNumber _primeNumber = new GetPrimeNumber();
 
-        public OpenAddressHashTable() 
+        public OpenAddressHashTable()
         {
             _capacity = _primeNumber.GetMin();
             _table = new Pair<TKey, TValue>[_capacity];
@@ -42,7 +43,7 @@ namespace HashTableLib
             if (!TryToPut(hash, key, value)) // ячейка занята
             {
                 int iterationNumber = 1;
-                while (true) 
+                while (true)
                 {
                     var place = (hash + iterationNumber * (1 + _hashMaker2.ReturnHash(key))) % _capacity;
                     if (TryToPut(place, key, value))
@@ -52,9 +53,9 @@ namespace HashTableLib
                         throw new ApplicationException("HashTable full!!!");
                 }
             }
-            if ((double) Count / _capacity >= FillFactor)
+            if ((double)Count / _capacity >= FillFactor)
             {
-                IncreaseTable();    
+                IncreaseTable();
             }
         }
 
@@ -73,7 +74,7 @@ namespace HashTableLib
             return false;
         }
 
-        private Pair<TKey,TValue> Find(TKey x)
+        private Pair<TKey, TValue> Find(TKey x)
         {
             var hash = _hashMaker1.ReturnHash(x);
             if (_table[hash] == null)
@@ -109,16 +110,39 @@ namespace HashTableLib
 
             set
             {
-                var pair = Find(key);
-                if (pair== null)
-                    throw new KeyNotFoundException();
+                var pair = Find(key) ?? throw new KeyNotFoundException();
                 pair.Value = value;
             }
         }
 
         private void IncreaseTable()
         {
-            // получить число и увеличить таблицу
+            // //получить число и увеличить таблицу
+            // создаем табличку заново и перехешируем все, что у нас есть
+            // 
+            if ((int)_primeNumber == _primeNumber.Count - 1)
+            {
+                throw new ArgumentException("Дальнейшее расширение невозможно");
+            }
+
+            _capacity = _primeNumber.Next();
+
+            var tmpOldTable = this._table;
+
+            _table = new Pair<TKey, TValue>[_capacity];
+
+            _hashMaker1 = new HashMaker<TKey>(_capacity);
+            _hashMaker2 = new HashMaker<TKey>(_capacity - 1);
+
+            Count = 0;
+
+            foreach (var pair in tmpOldTable)
+            {
+                if (pair != null && !pair.IsDeleted())
+                {
+                    Add(pair.Key, pair.Value);
+                }
+            }
         }
 
         public bool ContainsKey(TKey key)
@@ -138,7 +162,17 @@ namespace HashTableLib
 
         public bool Remove(TKey key)
         {
-            throw new NotImplementedException();
+            var ItemForRemoving = Find(key);
+
+            if (ItemForRemoving == null)
+            {
+                /////////////////////////////////////////////////////////
+                throw new Exception();
+            }
+
+            ItemForRemoving.DeletePair();
+            Count--;
+            return true;
         }
 
         public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
@@ -167,7 +201,31 @@ namespace HashTableLib
 
         public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
         {
-            throw new NotImplementedException();
+            if (array == null)
+            {
+                /////////////////////////////////////////////////////////
+                throw new Exception();
+            }
+
+            if (arrayIndex < 0 || arrayIndex > array.Length)
+            {
+                /////////////////////////////////////////////////////////
+                throw new Exception();
+            }
+
+            if (array.Length - arrayIndex < Count)
+            {
+                /////////////////////////////////////////////////////////
+                throw new Exception();
+            }
+
+            for (int i = 0; i < _table.Length; i++)
+            {
+                if (_table[i] is not null)
+                {
+                    array[arrayIndex++] = new KeyValuePair<TKey, TValue>(_table[i].Key, _table[i].Value);
+                }
+            }
         }
 
         public bool Remove(KeyValuePair<TKey, TValue> item)
