@@ -62,7 +62,41 @@ namespace DataStructuresTestProject
             {
                 { 0, 1 }
             };
-            Assert.False(oaTable.Remove(0));
+            oaTable.Remove(0);
+            Assert.Empty(oaTable);
+        }
+        [Fact]
+        public void TryGetValueTest()
+        {
+            var oaTable = new OpenAddressHashTable<int, int>
+            {
+                { 0, 1 }
+            };
+            Assert.True(oaTable.TryGetValue(0, out _));
+            oaTable.Remove(0);
+            Assert.False(oaTable.TryGetValue(0, out _));
+        }
+        [Fact]
+        public void CollisionTest()
+        {
+            int n = 5;
+            var oaTable = new OpenAddressHashTable<int, int>();
+            for (int i = 0; i < n; i++)
+            {
+                oaTable.Add(new KeyValuePair<int, int>(i * 11, 0));
+            }
+
+            oaTable.Add(new KeyValuePair<int, int>(23, 0));
+
+            oaTable.Remove(11);
+
+            oaTable.Remove(22);
+
+            oaTable.Remove(33);
+
+            Assert.True(oaTable.ContainsKey(44));
+
+            Assert.True(oaTable.ContainsKey(23));
         }
     }
 }

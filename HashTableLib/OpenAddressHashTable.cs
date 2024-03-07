@@ -17,7 +17,7 @@ namespace HashTableLib
 
         public bool IsReadOnly { get; private set; }
 
-        private const double FillFactor = 0.85;
+        private const double FillFactor = 0.65;
         private readonly GetPrimeNumber _primeNumber = new GetPrimeNumber();
 
         public OpenAddressHashTable()
@@ -40,7 +40,7 @@ namespace HashTableLib
         {
             var hash = _hashMaker1.ReturnHash(key);
 
-            if (!TryToPut(hash, key, value)) // ячейка занята
+            if (!TryToPut(hash, key, value))
             {
                 int iterationNumber = 1;
                 while (true)
@@ -117,17 +117,14 @@ namespace HashTableLib
 
         private void IncreaseTable()
         {
-            // //получить число и увеличить таблицу
-            // создаем табличку заново и перехешируем все, что у нас есть
-            // 
             if ((int)_primeNumber == _primeNumber.Count - 1)
             {
-                throw new ArgumentException("Дальнейшее расширение невозможно");
+                throw new ArgumentException();
             }
 
             _capacity = _primeNumber.Next();
 
-            var tmpOldTable = this._table;
+            var tempTable = _table;
 
             _table = new Pair<TKey, TValue>[_capacity];
 
@@ -136,7 +133,7 @@ namespace HashTableLib
 
             Count = 0;
 
-            foreach (var pair in tmpOldTable)
+            foreach (var pair in tempTable)
             {
                 if (pair != null && !pair.IsDeleted())
                 {
@@ -162,22 +159,33 @@ namespace HashTableLib
 
         public bool Remove(TKey key)
         {
-            var ItemForRemoving = Find(key);
+            var item = Find(key);
 
-            if (ItemForRemoving == null)
+            if (item == null)
             {
-                /////////////////////////////////////////////////////////
-                throw new Exception();
+                throw new NullReferenceException();
             }
 
-            ItemForRemoving.DeletePair();
+            item.DeletePair();
             Count--;
             return true;
         }
 
         public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
         {
-            throw new NotImplementedException();
+            if(key  == null)
+            {
+                throw new NullReferenceException();
+            }
+
+            if (Find(key) != null)
+            {
+                value = Find(key).Value;
+                return true;
+            }
+
+            value = default;
+            return false;
         }
 
         public void Add(KeyValuePair<TKey, TValue> item)
@@ -203,20 +211,17 @@ namespace HashTableLib
         {
             if (array == null)
             {
-                /////////////////////////////////////////////////////////
-                throw new Exception();
+                throw new NullReferenceException();
             }
 
             if (arrayIndex < 0 || arrayIndex > array.Length)
             {
-                /////////////////////////////////////////////////////////
-                throw new Exception();
+                throw new ArgumentOutOfRangeException();
             }
 
             if (array.Length - arrayIndex < Count)
             {
-                /////////////////////////////////////////////////////////
-                throw new Exception();
+                throw new ArgumentException();
             }
 
             for (int i = 0; i < _table.Length; i++)
