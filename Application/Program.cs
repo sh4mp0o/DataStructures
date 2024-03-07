@@ -14,23 +14,6 @@ namespace console
     {
         static void Main()
         {
-            int n = 5;
-            var oaTable = new OpenAddressHashTable<int, int>();
-            for (int i = 0; i < n; i++)
-            {
-                oaTable.Add(new KeyValuePair<int, int>(i * 11, 0));
-            }
-
-            oaTable.Add(new KeyValuePair<int, int>(23, 0));
-
-            oaTable.Remove(11);
-
-            oaTable.Remove(22);
-
-            oaTable.Remove(33);
-
-
-
             string text = new StreamReader("WarAndWorld.txt").ReadToEnd();     //prestuplenie-i-nakazanie.txt      annakarenina.txt        worldandwar
 
             Regex regex = new Regex("[А-Яа-яA-Za-z]+");
